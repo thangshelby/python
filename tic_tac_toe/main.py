@@ -3,7 +3,6 @@ import time
 from pygame.locals import *
 import const
 
-
 pg.init()
 class TIC_TAC_TOE(object):
     def game_initiating_window(self):
@@ -11,10 +10,10 @@ class TIC_TAC_TOE(object):
         self.screen= pg.display.set_mode((const.widthAndHeght),0,const.fps)
         pg.display.set_caption('Tic Tac Toe')
 
-        boardImg=pg.image.load('board.jpg').convert()
+        boardImg=pg.image.load(const.imgLoader('board.jpg')).convert()
         backGround= pg.transform.scale(boardImg,(400,400))
-        self.XImg=pg.transform.scale(pg.image.load('X.png').convert_alpha(),(80,80))
-        self.OImg=pg.transform.scale(pg.image.load('O.png').convert_alpha(),(80,80))
+        self.XImg=pg.transform.scale(pg.image.load(const.imgLoader('X.png')).convert_alpha(),(80,80))
+        self.OImg=pg.transform.scale(pg.image.load(const.imgLoader('O.png')).convert_alpha(),(80,80))
         
         self.screen.blit(backGround,(0,0))
         pg.display.flip()
@@ -105,7 +104,6 @@ class TIC_TAC_TOE(object):
                 elif event.type== pg.MOUSEBUTTONDOWN :
                     self.userClick()
                     if( const.winner or const.draw):
-                        print(const.winner,const.draw)
                         self.resetGame()
             pg.display.update()
             clock.tick(const.fps)

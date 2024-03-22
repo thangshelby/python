@@ -1,5 +1,4 @@
-import pygame
-pygame.init()
+import os
 
 # FOR GAME
 XO = 'x'
@@ -18,6 +17,11 @@ widthAndHeghtHalf= (width/2,height/2)
 white = (255, 255, 255)
 line_color = (0, 0, 0)
 board = [[None]*3, [None]*3, [None]*3]
+
+def imgLoader(path):
+    res =os.path.join('img',path)
+    return res
+
 
 # start= 60
 # h=110
