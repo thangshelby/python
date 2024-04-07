@@ -4,9 +4,9 @@ import sys
 from pygame.locals import *
 import pieces
 import engine
+import time
 
 pg.init()
-
 
 class Chess(object):
     def GameInitiating(self):
@@ -23,10 +23,22 @@ class Chess(object):
         self.blackTime =900
         self.preMove=[]
         self.AiChess= engine.Ai_chess()
+        self.moves=[]
+        self.mode=None
+        self.splash_screen=True
         # BOARD INIT
+
         self.screen = pg.display.set_mode(
             (self.width, self.height), 0, 120)
         pg.display.set_caption("Chess")
+
+        self.splashImg= self.TransformImg(
+            self.width, self.height,'splash2.jpg', False)
+        self.mode1PlayerImg=  self.TransformImg(
+            200,100,'2player.png', True)
+        self.mode2PlayerImg=  self.TransformImg(
+            200,100,'1player.png', True)
+
         self.boardImg = self.TransformImg(
             self.width, self.height, 'board2.web.webp', False)
         self.board:pieces.Pieces| None  = [[None] * 8 for _ in range(8)]
@@ -45,39 +57,43 @@ class Chess(object):
         self.numberImgs={}    
         for i in range(10):
             self.numberImgs[i]=self.TransformImg(25,30,f"{i}.png",True)
-        
-        self.screen.blit(self.boardImg, (0, 0))
-
         for i in range(1, 9):
             self.board[0][i-1] = pieces.Classify('Black',self.pieces[i],0,i-1)
             self.board[1][i-1] =  pieces.Classify('Black',self.pieces[0],1,i-1)
             self.board[7][i-1] =  pieces.Classify('White',self.pieces[i],7,i-1)
             self.board[6][i-1] =  pieces.Classify('White',self.pieces[0],6,i-1)
-        self.DrawChess()
 
+        self.DrawSplashScreen()
+
+    def DrawSplashScreen(self):
+        self.screen.blit(self.splashImg,(0,0))
         pg.display.flip()
 
     def DrawChess(self):
-        self.screen.blit(self.boardImg,(0,0))
-        for i in range(8):
-            for j in range(8):  
-                if self.board[i][j]:
-                    if self.board[i][j].GetTeam()  == 'Black':
-                        self.screen.blit(
-                            self.pieceBlackImages[self.board[i][j].GetType()[0]], (50+j*68 , i*68+50))
-                    else:
-                        self.screen.blit(
-                            self.pieceWhiteImages[self.board[i][j].GetType()[0]], (50+j*68 , i*68+50))
+               
+        if self.splash_screen:
+            self.DrawSplashScreen()
+     
+        else:
+            self.screen.blit(self.boardImg,(0,0))
+            for i in range(8):
+                for j in range(8):  
+                    if self.board[i][j]:
+                        if self.board[i][j].GetTeam()  == 'Black':
+                            self.screen.blit(
+                                self.pieceBlackImages[self.board[i][j].GetType()[0]], (50+j*68 , i*68+50))
+                        else:
+                            self.screen.blit(
+                                self.pieceWhiteImages[self.board[i][j].GetType()[0]], (50+j*68 , i*68+50))
 
-        self.DrawClock()
+            self.DrawClock()
         pg.display.update()
+    
     def DrawClock(self):
         whiteClock = pg.Surface((125,50),pg.SRCALPHA)
-        # blackClock = pg.Surface((125,50),pg.SRCALPHA)
 
 
         whiteClock.fill('White')
-        # blackClock.fill('White')
 
         # Create default time fot both
         whiteMinute,blackMinute= round(self.whiteTime//60),round(self.blackTime//60)
@@ -91,19 +107,24 @@ class Chess(object):
   
         whiteClock.blit(self.numberImgs[int(str(whiteSecond).rjust(2,'0')[0])],(65,10))
         whiteClock.blit(self.numberImgs[int(str(whiteSecond).rjust(2,'0')[1])],(95,10))
+        
+        self.screen.blit(whiteClock,(50+68*5,55+68*8))
 
 
         # Black clock
-        # blackClock.blit(self.numberImgs[int(str(blackMinute).rjust(2,'0')[0])],(5,10))
-        # blackClock.blit(self.numberImgs[int(str(blackMinute).rjust(2,'0')[1])],(35,10))
-        
-  
-        # blackClock.blit(self.numberImgs[int(str(blackSecond).rjust(2,'0')[0])],(65,10))
-        # blackClock.blit(self.numberImgs[int(str(blackSecond).rjust(2,'0')[1])],(95,10))
+        if self.mode==2:
+            blackClock = pg.Surface((125,50),pg.SRCALPHA)
+            blackClock.fill('White')
+
+            blackClock.blit(self.numberImgs[int(str(blackMinute).rjust(2,'0')[0])],(5,10))
+            blackClock.blit(self.numberImgs[int(str(blackMinute).rjust(2,'0')[1])],(35,10))
+            
+    
+            blackClock.blit(self.numberImgs[int(str(blackSecond).rjust(2,'0')[0])],(65,10))
+            blackClock.blit(self.numberImgs[int(str(blackSecond).rjust(2,'0')[1])],(95,10))
 
 
-        self.screen.blit(whiteClock,(50+68*5,55+68*8))
-        # self.screen.blit(blackClock,(50+68*5,0))  
+            self.screen.blit(blackClock,(50+68*5,0))  
 
         pg.display.update()
 
@@ -118,28 +139,41 @@ class Chess(object):
     
     def UserClick(self):
         x, y = pg.mouse.get_pos()
+
         col,row = (x-50)//68, (y-50)//68
 
-        if row <0 or row > 7 or col <0 or col >7 or (self.board[row][col]!= None and self.board[row][col].GetTeam()!= self.turn and self.hover==False):
-            return 
-        
-        if self.promoStatus==True:
-            self.Promote(row,col)
+        if self.splash_screen:
+            if x>=80 and x<=360 and y>=350 and y<=400:
+                self.mode=1
+                self.splash_screen= False
+            elif x>=80 and x<= 360 and y>=410 and y<=460:
+                self.mode=2
+                self.splash_screen= False
+                
+            self.DrawChess()
             return
-
-        if  (self.hover == False or self.board[row][col] and self.board[row][col].GetTeam()==self.turn ):
-            self.UnActivePiece()
-            if self.board[row][col]:
-                self.hover = True
-                self.ActivePiece(row, col)
+        
         else:
-            self.hover= False
+            if row <0 or row > 7 or col <0 or col >7 or (self.board[row][col]!= None and self.board[row][col].GetTeam()!= self.turn and self.hover==False):
+                return 
+            
+            if self.promoStatus==True:
+                self.Promote(row,col)
+                return
 
-            if self.row == row and self.col == col:
+            if  (self.hover == False or self.board[row][col] and self.board[row][col].GetTeam()==self.turn ):
                 self.UnActivePiece()
-            elif (row,col) in self.board[self.row][self.col].GetAllValidMoves(self.board):
-                self.MovePiece(row,col)
-    
+                if self.board[row][col]:
+                    self.hover = True
+                    self.ActivePiece(row, col)
+            else:
+                self.hover= False
+
+                if self.row == row and self.col == col:
+                    self.UnActivePiece()
+                elif (row,col) in self.board[self.row][self.col].GetAllValidMoves(self.board):
+                    self.MovePiece(row,col)
+        
     def ActivePiece(self, row, col):
         self.row,self.col= row,col
        
@@ -196,27 +230,31 @@ class Chess(object):
 
     def MovePiece(self, row, col):
         currentPiece=self.board[self.row][self.col]
-        
+        colDict= {0:'a',1:'b',2:'c',3:'d',4:'e',5:'f',6:'g',7:'h'}
         if currentPiece.GetTeam()=='White':
             self.turn='Black'
         else:
             self.turn='White'
 
         validMove=(row,col) in currentPiece.GetAllValidMoves(self.board)
+
         if validMove==False:
             self.UnActivePiece()
-
         else:
-            
-            currentPiece.Move(row,col,self.board)
-            # if len(self.preMove)>1 and self.preMove[len(self.preMove)-2].GetType()=='Pawn' :
-            #     for i in range(8):
-            #         for j in range(8):
-            #             if self.board[i][j]!=None and self.board[i][j].GetType()=='Pawn' :
-            #                 self.board[i][j].SetFalse()
-            # self.preMove.append(currentPiece)
-    
+            piece='' if currentPiece.GetType()=='Pawn'else currentPiece.GetType()[0]
+            take= 'x' if self.board[row][col]!=None else ''
+            if take=='x'and piece=='':
+                piece=colDict[currentPiece.col]   
+            sign=str(piece+take+ str(colDict[col])+str(8-row) )
+            if sign=='Kg1' or sign=='Kg7':
+                self.moves.append('O-O')  
+            elif sign=='Kc1' or sign== 'Kc7':
+                self.moves.append('O-O-O')  
+            else:
+                self.moves.append(str(piece+take+ str(colDict[col])+str(8-row) ))
 
+            currentPiece.Move(row,col,self.board)
+        print(self.moves)
         self.DrawChess()
         if currentPiece.GetType()== "Pawn" and currentPiece.CheckPromotion():
             self.promoStatus= True
@@ -253,30 +291,46 @@ class Chess(object):
         self.GameInitiating()
 
         while self.running:
+    
             if self.turn=='White':
                 self.whiteTime-=0.03125
             else:
-                res  = self.AiChess.FindBestMove(self.board)
-            
-                randomPiece= res[0]
-                randomMove=res[1]
-                self.row = randomPiece.row
-                self.col = randomPiece.col
+                if self.mode==2:
+                    self.blackTime-=0.03125
+                else:
+                    self.pieceInBoard = {}
+                    for i in range(8):
+                        for j in range(8):
+                            currentPiece = self.board[i][j]
+                            if currentPiece != None and currentPiece.GetTeam() == 'Black':
+                                if currentPiece.GetType()[0] not in self.pieceInBoard:
+                                    self.pieceInBoard[currentPiece.GetType()[0]] = [
+                                        currentPiece]
+                                else:
+                                    self.pieceInBoard[currentPiece.GetType()[0]].append(
+                                        currentPiece)
 
-                self.MovePiece(randomMove[0],randomMove[1])
-                # self.blackTime-=0.03125
+                    res  = self.AiChess.FindBestMove(self.board,' '.join(self.moves),self.pieceInBoard)
+                
+                    bestPiece= res[0]
+                    bestMove=res[1]
 
-            self.DrawClock()
+                    self.row = bestPiece.row
+                    self.col = bestPiece.col
+                    time.sleep(1)
+                    self.MovePiece(bestMove[0],bestMove[1])
+
+            if self.splash_screen==False:
+                self.DrawClock()
             for event in pg.event.get():
-
                 if event.type == pg.QUIT or self.CheckWin():
                     self.running = False
                     pg.quit()
                     sys.exit()
                 elif event.type == pg.MOUSEBUTTONDOWN:
                     self.UserClick()
-            CLOCK.tick(self.fps)
 
+            CLOCK.tick(self.fps)
 
 game = Chess()
 game.StartGame()

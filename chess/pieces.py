@@ -17,6 +17,7 @@ class Pieces(object):
             return False
     def GetAllValidMoves(self,board):
         pass
+
 class Pawn(Pieces):
     type= 'Pawn'
     firstMove=False
@@ -91,8 +92,6 @@ class Pawn(Pieces):
     
     def EnPassant(self):
         pass
-
-
 
 class Rook(Pieces):
     type='Rook'
@@ -208,7 +207,7 @@ class King(Pieces):
             if self.CheckInBoard(newRow,newCol)==False or board[newRow][newCol]!= None and board[newRow][newCol].GetTeam()==self.team:
                 continue
             res.append((newRow,newCol))
-        if self.firstMove==False and self.row==7 and self.col == 4 or self.row== 0 and self.col==5:
+        if self.firstMove==False and self.row==7 and self.col == 4 or self.row== 0 and self.col==4:
             if self.team=='White':
                 if board[7][5]==None and board[7][6]==None:
                     res.append((7,6))
@@ -218,7 +217,7 @@ class King(Pieces):
                 if board[0][5]==None and board[0][6]==None:
                     res.append((0,6))
                 if board[0][1]==None and board[0][2]==None and board[0][3]==None:
-                    res.append((7,2))
+                    res.append((0,2))
 
         return res
     def Move(self, row, col, board):

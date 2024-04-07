@@ -1,0 +1,13 @@
+<h1>Welcome to us !</h1>
+
+<form method="post">
+  {% csrf_token %}
+  {%for account in accounts%}
+  <h1>{{account.userName}}</h1>
+  <h1>{{account.name}}</h1>
+  <h1>{{account.email}}</h1>
+  {% endfor %}
+  <input name="name" placeholder="Input your name" type="text" />
+  <input name="age" placeholder="Input your age" type="text" />
+  <button type="submit">Submit</button>
+</form>

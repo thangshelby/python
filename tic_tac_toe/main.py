@@ -1,11 +1,14 @@
 import pygame as pg
 import time
 from pygame.locals import *
+from ai import main
+from main import *
 import const
 
 pg.init()
 class TIC_TAC_TOE(object):
     def game_initiating_window(self):
+        self.AI = main.Ai_Tic_Tac_Toe()
 
         self.screen= pg.display.set_mode((const.widthAndHeght),0,const.fps)
         pg.display.set_caption('Tic Tac Toe')
@@ -42,7 +45,6 @@ class TIC_TAC_TOE(object):
             add=12
         elif col==2:
             add=25
-
         const.board[row][col]=const.XO
         posx,posy=  60+add+ col*90 ,50+ row*110
         if const.XO=='x':
@@ -55,6 +57,7 @@ class TIC_TAC_TOE(object):
         pg.display.update()
     
     def checkStatus(self):
+        print(const.board)
         for row in range(0, 3):
             if((const.board[row][0] == const.board[row][1] == const.board[row][2]) and (const.board[row][0] is not None)):
                 const.winner = const.board[row][0]
@@ -75,6 +78,7 @@ class TIC_TAC_TOE(object):
     
         if(all([all(row) for row in const.board]) and const.winner is None):
             const.draw = True
+
         self.drawStatus()
 
     def userClick(self):
@@ -83,6 +87,9 @@ class TIC_TAC_TOE(object):
             return
         col= (x-60)//90
         row = (y-30)//110
+        if row >2 or row < 0 or col >2 or col < 0:
+            return
+        
         self.drawXO(row,col)
     def resetGame(self):
         time.sleep(3)
@@ -98,6 +105,11 @@ class TIC_TAC_TOE(object):
         clock= pg.time.Clock()
         self.game_initiating_window()
         while const.running:
+            if const.XO=='o':
+                print(const.board)
+                AiMove=self.AI.FindBestMove(const.board)
+                time.sleep(0.5)
+                self.drawXO(AiMove[0],AiMove[1])
             for event in pg.event.get():
                 if event.type==pg.QUIT:
                     const.running= False
